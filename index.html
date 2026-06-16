@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Darshana">
+<meta name="theme-color" content="#1a56db">
+<meta name="description" content="Procurement, supplier and medicine catalogue manager for Darshana Ayurveda">
+<title>Darshana Ayurveda</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',sans-serif;background:#f0f4ff;color:#1e293b;min-height:100vh}
+.app{display:flex;min-height:100vh}
+
+/* ── Sidebar ── */
+.sidebar{width:230px;background:linear-gradient(175deg,#1a56db 0%,#0e3fa3 100%);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .25s ease}
+.sidebar-brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+.brand-name{font-size:15px;font-weight:700;color:#fff;line-height:1.3}
+.brand-sub{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
+.sidebar-nav{padding:12px 10px;flex:1;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:10px;cursor:pointer;color:rgba(255,255,255,.72);font-size:13px;font-weight:500;margin-bottom:3px;transition:all .15s;user-select:none}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.nav-item:hover{background:rgba(255,255,255,.12);color:#fff}
+.nav-item.active{background:#fff;color:#1a56db;font-weight:600}
+.main{flex:1;margin-left:230px;padding:20px;min-height:100vh}
+
+/* ── Topbar ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:20px;font-weight:700;color:#0f172a}
+.page-sub{font-size:12px;color:#64748b;margin-top:2px}
+.burger{display:none;background:#1a56db;border:none;border-radius:10px;padding:9px;cursor:pointer;align-items:center}
+.burger svg{width:20px;height:20px;color:#fff;display:block}
+
+/* ── Sections ── */
+.section{display:none}.section.active{display:block}
+
+/* ── Cards ── */
+.card{background:#fff;border-radius:18px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:18px}
+.card-body{padding:18px 20px 20px}
+.card-title{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:14px}
+
+/* ── Grid ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+/* ── Inputs ── */
+.lbl{font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;display:block;margin-top:12px}
+.lbl:first-child{margin-top:0}
+.inp{width:100%;padding:10px 13px;border-radius:10px;border:1.5px solid #e2e8f0;font-size:13.5px;color:#1e293b;font-family:inherit;outline:none;transition:border .15s,box-shadow .15s}
+.inp:focus{border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.inp::placeholder{color:#94a3b8}
+
+/* ── Price rows ── */
+.price-rows{margin-top:10px}
+.price-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.price-row .inp{flex:1}
+.price-row-del{background:none;border:none;cursor:pointer;color:#ef4444;font-size:20px;line-height:1;padding:4px 6px;border-radius:7px;flex-shrink:0;font-family:inherit}
+.price-row-del:hover{background:#fee2e2}
+.unit-toggle{display:flex;gap:4px;flex-shrink:0}
+.unit-btn{padding:9px 12px;border-radius:9px;background:#f1f5f9;color:#475569;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid transparent;font-family:inherit;transition:all .15s;flex-shrink:0}
+.unit-btn.active{background:#eef4ff;color:#1a56db;border-color:#1a56db}
+.unit-fixed{padding:9px 12px;border-radius:9px;background:#f8faff;color:#64748b;font-size:13px;font-weight:600;border:1.5px solid #e2e8f0;flex-shrink:0}
+.add-row-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;background:#eef4ff;color:#1a56db;border:1.5px dashed #93c5fd;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;margin-top:4px}
+.add-row-btn:hover{background:#dbeafe}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 17px;border-radius:10px;border:none;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.btn-primary{background:#1a56db;color:#fff}.btn-primary:hover{background:#1648c0}
+.btn-success{background:#059669;color:#fff}.btn-success:hover{background:#047857}
+.btn-warning{background:#f59e0b;color:#fff}.btn-warning:hover{background:#d97706}
+.btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#dc2626}
+.btn-ghost{background:#f1f5f9;color:#475569;border:1.5px solid #e2e8f0}.btn-ghost:hover{background:#e2e8f0}
+.btn-outline{background:#fff;color:#1a56db;border:1.5px solid #1a56db}.btn-outline:hover{background:#eef4ff}
+.btn-sm{padding:7px 12px;font-size:12px}
+.btn-full{width:100%;margin-top:12px}
+.btn-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tab{padding:7px 13px;border-radius:9px;background:#f1f5f9;color:#475569;font-size:12.5px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.tab.active{background:#1a56db;color:#fff;font-weight:600}
+
+/* ── Qty buttons ── */
+.qty-wrap{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.qty-btn{padding:8px 14px;border-radius:9px;background:#f1f5f9;color:#475569;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid transparent;font-family:inherit;transition:all .15s}
+.qty-btn.active{background:#eef4ff;color:#1a56db;border-color:#1a56db;font-weight:600}
+.qty-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── Search ── */
+.search-results{background:#f8faff;border:1.5px solid #e2e8f0;border-radius:10px;margin-top:6px;max-height:160px;overflow-y:auto;display:none}
+.search-results.open{display:block}
+.res-item{padding:10px 14px;font-size:13.5px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background .1s}
+.res-item:last-child{border-bottom:none}
+.res-item:hover{background:#eef4ff}
+
+/* ── Selected box ── */
+.sel-box{background:#f8faff;border:1.5px solid #c7d7fd;border-radius:10px;padding:11px 14px;margin-top:7px;font-size:13.5px}
+.sel-box .sn{font-weight:600;color:#1e293b}
+.sel-box .sm{color:#64748b;font-size:12px;margin-top:2px}
+.sel-box.empty{color:#94a3b8;font-style:italic;border-color:#e2e8f0;background:#f8faff}
+
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto;margin-top:10px}
+table{width:100%;border-collapse:collapse}
+th{background:#f8faff;font-size:11.5px;font-weight:600;color:#64748b;text-align:left;padding:9px 11px;border-bottom:1.5px solid #e2e8f0}
+td{padding:9px 11px;font-size:13.5px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.del-cell{background:none;border:none;cursor:pointer;color:#ef4444;font-size:19px;line-height:1;padding:3px 6px;border-radius:6px}
+.del-cell:hover{background:#fee2e2}
+
+/* ── Badge ── */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-green{background:#d1fae5;color:#065f46}
+.badge-amber{background:#fef3c7;color:#92400e}
+.badge-red{background:#fee2e2;color:#991b1b}
+
+/* ── List cards ── */
+.list-card{border:1.5px solid #e2e8f0;border-radius:12px;padding:13px;margin-bottom:10px;background:#fafbff}
+.list-card-name{font-weight:600;font-size:14px;color:#0f172a}
+.list-card-meta{font-size:12px;color:#64748b;margin-top:4px;line-height:1.7}
+
+/* ── Dashboard stats ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat{background:#fff;border-radius:16px;padding:17px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.stat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:9px}
+.stat-val{font-size:26px;font-weight:700;color:#1a56db}
+.stat-lbl{font-size:12px;color:#64748b;margin-top:3px}
+
+/* ── Order card ── */
+.order-card{border:1.5px solid #e2e8f0;border-radius:16px;padding:17px;margin-bottom:16px;background:#fff}
+.order-hdr{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px}
+.order-sup{font-weight:700;font-size:15px}
+.order-dt{font-size:12px;color:#94a3b8}
+.total-box{background:#f0fdf4;border:1.5px solid #a7f3d0;border-radius:12px;padding:11px 15px;margin:13px 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.total-amt{font-size:18px;font-weight:700;color:#059669}
+.total-lbl{font-size:11px;color:#065f46}
+.tgl-grp{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tgl{padding:7px 15px;border-radius:9px;background:#f1f5f9;color:#475569;font-size:12.5px;font-weight:500;cursor:pointer;border:1.5px solid transparent;font-family:inherit;transition:all .15s}
+.tgl.ac{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+.tgl.cr{background:#dbeafe;color:#1e40af;border-color:#93c5fd}
+.tgl.pd{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+.tgl.pn{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+
+/* ── Settings ── */
+.settings-block{border:1.5px solid #e2e8f0;border-radius:14px;padding:18px;margin-bottom:16px}
+.settings-block h3{font-size:14px;font-weight:700;color:#0f172a;margin-bottom:4px}
+.settings-block p{font-size:12.5px;color:#64748b;margin-bottom:14px;line-height:1.6}
+.csv-preview{background:#f8faff;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;font-size:12px;font-family:monospace;overflow-x:auto;white-space:pre;margin:10px 0;max-height:200px;overflow-y:auto;color:#334155}
+.import-result{padding:10px 14px;border-radius:10px;font-size:13px;margin-top:10px;display:none}
+.import-result.ok{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7}
+.import-result.err{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.file-drop{border:2px dashed #93c5fd;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#f0f7ff}
+.file-drop:hover,.file-drop.drag{border-color:#1a56db;background:#eef4ff}
+.file-drop p{font-size:13px;color:#64748b;margin-top:6px}
+.file-drop .icon{font-size:32px;margin-bottom:4px}
+
+/* ── Modal ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-head{padding:20px 22px 14px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center}
+.modal-head h2{font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;line-height:1;padding:4px 8px;border-radius:8px}
+.modal-close:hover{background:#f1f5f9;color:#1e293b}
+.modal-body{padding:18px 22px 22px}
+.preview-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.preview-table th{background:#f8faff;padding:7px 9px;text-align:left;border-bottom:1px solid #e2e8f0;color:#64748b;font-weight:600}
+.preview-table td{padding:7px 9px;border-bottom:1px solid #f8faff}
+.preview-table tr:last-child td{border-bottom:none}
+
+/* ── Empty ── */
+.empty-state{text-align:center;padding:40px 20px;color:#94a3b8}
+.empty-state svg{width:44px;height:44px;margin:0 auto 10px;display:block;opacity:.35}
+.empty-state p{font-size:13.5px}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:22px;right:22px;background:#0f172a;color:#fff;padding:11px 18px;border-radius:12px;font-size:13.5px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s ease;max-width:320px;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ── Overlay ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99}
+.overlay.open{display:block}
+
+/* ── Mobile ── */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:14px}
+  .grid2{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .burger{display:flex}
+}
+@media(max-width:420px){.stats{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- Import Preview Modal -->
+<div class="modal-bg" id="importModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Import Preview</h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="modalBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- ── Sidebar ── -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-name">Darshana Ayurveda</div>
+    <div class="brand-sub">Procurement System</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="go('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="go('create',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Create Order
+    </div>
+    <div class="nav-item" onclick="go('orders',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+      Orders
+    </div>
+    <div class="nav-item" onclick="go('suppliers',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Suppliers
+    </div>
+    <div class="nav-item" onclick="go('medicines',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/><path d="M12 8v8M8 12h8"/></svg>
+      Medicines
+    </div>
+    <div class="nav-item" onclick="go('settings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </div>
+  </nav>
+</div>
+
+<!-- ── Main ── -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="pageTitle">Dashboard</div>
+      <div class="page-sub"  id="pageSub">Overview of your procurement</div>
+    </div>
+    <button class="burger" onclick="openSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="section active">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-icon" style="background:#eef4ff"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></div>
+        <div class="stat-val" id="st-orders">0</div><div class="stat-lbl">Total Orders</div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon" style="background:#f0fdf4"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <div class="stat-val" id="st-sup">0</div><div class="stat-lbl">Suppliers</div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon" style="background:#fefce8"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg></div>
+        <div class="stat-val" id="st-med">0</div><div class="stat-lbl">Medicines</div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon" style="background:#fdf2f8"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="stat-val" id="st-pend">0</div><div class="stat-lbl">Pending Payments</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title">Recent Orders</div>
+        <div id="dashRecent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE ORDER -->
+  <div id="create" class="section">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-body">
+          <div class="card-title">Order Details</div>
+
+          <span class="lbl">Supplier</span>
+          <input class="inp" id="supSearch" placeholder="Search supplier…" oninput="searchSup()" autocomplete="off">
+          <div class="search-results" id="supRes"></div>
+          <div class="sel-box empty" id="selSupBox">No supplier selected</div>
+
+          <span class="lbl" style="margin-top:16px">Category</span>
+          <div class="tabs" id="catTabs">
+            <button class="tab active" onclick="switchCat(this,'Kashaya')">Kashaya</button>
+            <button class="tab" onclick="switchCat(this,'Guli/Tablets')">Guli/Tablets</button>
+            <button class="tab" onclick="switchCat(this,'Kalka')">Kalka</button>
+            <button class="tab" onclick="switchCat(this,'Churna')">Churna</button>
+            <button class="tab" onclick="switchCat(this,'Oils')">Oils</button>
+          </div>
+
+          <span class="lbl">Medicine</span>
+          <input class="inp" id="medSearch" placeholder="Search by name (English or Sinhala)…" oninput="searchMed()" autocomplete="off">
+          <div class="search-results" id="medRes"></div>
+          <div class="sel-box empty" id="selMedBox">No medicine selected</div>
+
+          <span class="lbl" style="margin-top:12px">Quantity</span>
+          <div class="qty-wrap" id="qtyButtons"><span style="font-size:12px;color:#94a3b8">Select a medicine first</span></div>
+
+          <button class="btn btn-primary btn-full" onclick="addToOrder()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Add to Order
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="card-title" style="margin-bottom:4px">Current Order</div>
+          <div id="cartSupLbl" style="font-size:12px;color:#64748b;margin-bottom:10px"></div>
+          <div class="tbl-wrap">
+            <table><thead><tr><th>#</th><th>Medicine</th><th>Qty</th><th></th></tr></thead>
+            <tbody id="cartBody"></tbody></table>
+          </div>
+          <div id="cartEmpty" class="empty-state" style="padding:22px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/></svg>
+            <p>No items yet</p>
+          </div>
+          <button class="btn btn-success btn-full" onclick="saveOrder()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save Order
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDERS -->
+  <div id="orders" class="section">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <button class="tgl pd" onclick="filterOrders('all',this)">All</button>
+      <button class="tgl" onclick="filterOrders('Pending',this)">Pending</button>
+      <button class="tgl" onclick="filterOrders('Paid',this)">Paid</button>
+    </div>
+    <div id="ordersList"></div>
+  </div>
+
+  <!-- SUPPLIERS -->
+  <div id="suppliers" class="section">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-body">
+          <div class="card-title" id="supFormTitle">Add Supplier</div>
+          <input type="hidden" id="editSupIdx" value="-1">
+          <span class="lbl">Supplier Name *</span>
+          <input class="inp" id="supName" placeholder="e.g. Arya Vaidya Sala">
+          <span class="lbl">Representative</span>
+          <input class="inp" id="supRep" placeholder="Contact person">
+          <span class="lbl">Phone</span>
+          <input class="inp" id="supPhone" placeholder="+94 77 000 0000" type="tel">
+          <span class="lbl">Default Discount %</span>
+          <input class="inp" id="supDisc" placeholder="0" type="number" min="0" max="100">
+          <button class="btn btn-primary btn-full" onclick="saveSup()">Save Supplier</button>
+          <button class="btn btn-ghost btn-full" id="cancelSupBtn" style="display:none;margin-top:6px" onclick="cancelSupEdit()">Cancel Edit</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="card-title">Supplier List</div>
+          <div id="supList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEDICINES -->
+  <div id="medicines" class="section">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-body">
+          <div class="card-title" id="medFormTitle">Add Medicine</div>
+          <input type="hidden" id="editMedIdx" value="-1">
+
+          <span class="lbl">Category</span>
+          <div class="tabs" id="medCatTabs">
+            <button class="tab active" onclick="selMedCat(this,'Kashaya')">Kashaya</button>
+            <button class="tab" onclick="selMedCat(this,'Guli/Tablets')">Guli/Tablets</button>
+            <button class="tab" onclick="selMedCat(this,'Kalka')">Kalka</button>
+            <button class="tab" onclick="selMedCat(this,'Churna')">Churna</button>
+            <button class="tab" onclick="selMedCat(this,'Oils')">Oils</button>
+          </div>
+
+          <span class="lbl">Medicine Name *</span>
+          <input class="inp" id="medName" placeholder="e.g. නීල්‍යාදී තෛලය (Neelyadi Thailaya)">
+          <p style="font-size:11.5px;color:#94a3b8;margin-top:4px">Tip: include both Sinhala and English in name for best search results</p>
+
+          <span class="lbl" style="margin-top:14px">Quantity & Price Pairs</span>
+          <div class="price-rows" id="priceRows"></div>
+          <button class="add-row-btn" onclick="addPriceRow()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Add Quantity
+          </button>
+
+          <button class="btn btn-primary btn-full" onclick="saveMed()" style="margin-top:16px">Save Medicine</button>
+          <button class="btn btn-ghost btn-full" id="cancelMedBtn" style="display:none;margin-top:6px" onclick="cancelMedEdit()">Cancel Edit</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div class="card-title" style="margin-bottom:0">Medicine Library</div>
+            <span id="medCount" style="font-size:12px;color:#64748b"></span>
+          </div>
+          <input class="inp" id="medLibSearch" placeholder="Search medicines…" oninput="renderMeds()" style="margin-bottom:12px">
+          <div id="medList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="settings" class="section">
+    <div class="grid2">
+
+      <!-- EXPORT -->
+      <div>
+        <div class="card">
+          <div class="card-body">
+            <div class="card-title">Export Medicines</div>
+
+            <div class="settings-block">
+              <h3>📥 Export as CSV</h3>
+              <p>Download your entire medicine catalogue as a CSV file. You can open it in Excel or Google Sheets, edit prices, and re-import it.</p>
+              <button class="btn btn-primary" onclick="exportCSV()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download CSV
+              </button>
+            </div>
+
+            <div class="settings-block">
+              <h3>📋 CSV Format Reference</h3>
+              <p>The CSV uses these columns. Quantity/price columns are flexible — any number of pairs are supported.</p>
+              <div class="csv-preview">name,category,qty_1,price_1,qty_2,price_2,...
+
+Examples:
+Dhanwantaram,Kashaya,250g,1670,500g,3120,1Kg,5790
+Triphala Churna,Churna,250g,320,500g,590,1Kg,1100
+Brahmi Guli,Guli/Tablets,60 Qty,440,250 Qty,1670,1000 Qty,5790
+Karpasasthyadi,Oils,100ml,580,200ml,990,500ml,2450,1L,4230,2L,8050</div>
+              <button class="btn btn-ghost btn-sm" onclick="downloadTemplate()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download Template CSV
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IMPORT -->
+      <div>
+        <div class="card">
+          <div class="card-body">
+            <div class="card-title">Import Medicines</div>
+
+            <div class="settings-block">
+              <h3>📤 Import from CSV</h3>
+              <p>Upload a CSV file to import medicines. You'll get a preview before anything is saved. Supports any quantity structure — no code changes needed.</p>
+
+              <div class="file-drop" id="fileDrop" onclick="document.getElementById('csvFile').click()"
+                ondragover="event.preventDefault();this.classList.add('drag')"
+                ondragleave="this.classList.remove('drag')"
+                ondrop="handleDrop(event)">
+                <div class="icon">📂</div>
+                <strong style="font-size:13px">Tap to choose CSV file</strong>
+                <p>or drag and drop here</p>
+              </div>
+              <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleFile(this.files[0])">
+              <div class="import-result" id="importResult"></div>
+            </div>
+
+            <div class="settings-block">
+              <h3>⚙️ Import Mode</h3>
+              <p>Choose what happens when an imported medicine name already exists in your library.</p>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px">
+                  <input type="radio" name="importMode" value="merge" checked style="margin-top:3px;flex-shrink:0">
+                  <span><strong>Merge</strong> — Add new medicines, update prices of existing ones by name</span>
+                </label>
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px">
+                  <input type="radio" name="importMode" value="replace">
+                  <span><strong>Replace</strong> — Delete all current medicines and replace with imported list</span>
+                </label>
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px">
+                  <input type="radio" name="importMode" value="skip">
+                  <span><strong>Skip duplicates</strong> — Only add medicines that don't already exist</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-block" style="border-color:#fee2e2">
+              <h3>🗑️ Danger Zone</h3>
+              <p>These actions cannot be undone.</p>
+              <div class="btn-row">
+                <button class="btn btn-danger btn-sm" onclick="clearAllMeds()">Clear All Medicines</button>
+                <button class="btn btn-danger btn-sm" onclick="clearAllData()">Reset Entire App</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STATE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let suppliers = load('suppliers');
+let medicines = load('medicines');
+let orders    = load('orders');
+
+// Migrate old medicine format  { prices: { "250g": 1500 } }  →  new { prices: [{qty,price}] }
+medicines = medicines.map(migrateMed);
+save('medicines', medicines);
+
+let currentCat   = 'Kashaya';
+let medCat       = 'Kashaya';
+let selSup       = null;
+let selMed       = null;
+let selQty       = null;
+let cart         = [];
+let orderFilter  = 'all';
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// HELPERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function load(k){ return JSON.parse(localStorage.getItem(k)||'[]'); }
+function save(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
+function saveAll(){ save('suppliers',suppliers); save('medicines',medicines); save('orders',orders); }
+
+function migrateMed(m){
+  // Already new format
+  if(Array.isArray(m.prices)) return m;
+  // Old format: prices is an object
+  const pairs = Object.entries(m.prices||{}).map(([qty,price])=>({qty,price:Number(price)}));
+  return { name: m.name, category: m.type||m.category||'Kashaya', prices: pairs };
+}
+
+function toast(msg, dur=2600){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), dur);
+}
+
+function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
+
+const pageMeta = {
+  dashboard:['Dashboard','Overview of your procurement'],
+  create:   ['Create Order','Choose supplier, category, medicine and quantity'],
+  orders:   ['Orders','View and manage all saved orders'],
+  suppliers:['Suppliers','Manage your supplier list'],
+  medicines:['Medicines','Manage your medicine catalogue'],
+  settings: ['Settings','Import, export and manage data'],
+};
+
+function go(id, el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(el){ document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); el.classList.add('active'); }
+  const m = pageMeta[id]||[id,''];
+  document.getElementById('pageTitle').textContent = m[0];
+  document.getElementById('pageSub').textContent   = m[1];
+  const fns = {dashboard:renderDashboard, orders:renderOrders, suppliers:renderSups, medicines:renderMeds};
+  if(fns[id]) fns[id]();
+  closeSidebar();
+}
+
+function openModal(title, bodyHtml){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  document.getElementById('importModal').classList.add('open');
+}
+function closeModal(){ document.getElementById('importModal').classList.remove('open'); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DASHBOARD
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderDashboard(){
+  const lo = load('orders');
+  document.getElementById('st-orders').textContent = lo.length;
+  document.getElementById('st-sup').textContent    = suppliers.length;
+  document.getElementById('st-med').textContent    = medicines.length;
+  document.getElementById('st-pend').textContent   = lo.filter(o=>o.paymentStatus==='Pending').length;
+  const recent = lo.slice().reverse().slice(0,6);
+  const el = document.getElementById('dashRecent');
+  if(!recent.length){ el.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg><p>No orders yet</p></div>`; return; }
+  el.innerHTML = recent.map(o=>{
+    const tot = calcTotal(o);
+    const sc = o.paymentStatus==='Paid'?'#059669':'#ef4444';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #f1f5f9">
+      <div><div style="font-weight:600;font-size:13.5px">${o.supplier.name}</div><div style="font-size:11.5px;color:#94a3b8">${o.date||''} · ${o.items.length} item${o.items.length!==1?'s':''}</div></div>
+      <div style="text-align:right"><div style="font-weight:700;color:#1a56db;font-size:14px">Rs.${tot.toLocaleString()}</div><div style="font-size:11px;font-weight:600;color:${sc}">${o.paymentStatus}</div></div>
+    </div>`;
+  }).join('');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SUPPLIERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function saveSup(){
+  const name = document.getElementById('supName').value.trim();
+  if(!name) return toast('⚠️ Supplier name required');
+  const s = { name, rep:document.getElementById('supRep').value.trim(), phone:document.getElementById('supPhone').value.trim(), discount:Number(document.getElementById('supDisc').value||0) };
+  const idx = parseInt(document.getElementById('editSupIdx').value);
+  if(idx>=0){ suppliers[idx]=s; toast('✅ Supplier updated'); }
+  else { suppliers.push(s); toast('✅ Supplier saved'); }
+  save('suppliers',suppliers);
+  renderSups();
+  clearSupForm();
+}
+function clearSupForm(){
+  ['supName','supRep','supPhone','supDisc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('editSupIdx').value='-1';
+  document.getElementById('cancelSupBtn').style.display='none';
+  document.getElementById('supFormTitle').textContent='Add Supplier';
+}
+function cancelSupEdit(){ clearSupForm(); }
+function editSup(i){
+  const s=suppliers[i];
+  document.getElementById('supName').value=s.name;
+  document.getElementById('supRep').value=s.rep||'';
+  document.getElementById('supPhone').value=s.phone||'';
+  document.getElementById('supDisc').value=s.discount||0;
+  document.getElementById('editSupIdx').value=i;
+  document.getElementById('cancelSupBtn').style.display='block';
+  document.getElementById('supFormTitle').textContent='Edit Supplier';
+  document.getElementById('supName').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function delSup(i){
+  if(!confirm(`Delete "${suppliers[i].name}"?`)) return;
+  suppliers.splice(i,1); save('suppliers',suppliers); renderSups(); toast('🗑️ Supplier deleted');
+}
+function renderSups(){
+  const el=document.getElementById('supList');
+  if(!suppliers.length){ el.innerHTML=emptyState('No suppliers added yet'); return; }
+  el.innerHTML=suppliers.map((s,i)=>`<div class="list-card">
+    <div class="list-card-name">${s.name}</div>
+    <div class="list-card-meta">${s.rep?'👤 '+s.rep+'<br>':''}${s.phone?'📞 '+s.phone+'<br>':''}<span class="badge badge-blue">Discount ${s.discount}%</span></div>
+    <div class="btn-row"><button class="btn btn-warning btn-sm" onclick="editSup(${i})">Edit</button><button class="btn btn-danger btn-sm" onclick="delSup(${i})">Delete</button></div>
+  </div>`).join('');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MEDICINES – DYNAMIC PRICE ROWS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Which units are valid per category, and the canonical suffix to build the qty string with.
+const CAT_UNITS = {
+  'Kashaya'      : ['g','Kg'],
+  'Kalka'        : ['g','Kg'],
+  'Churna'       : ['g','Kg'],
+  'Oils'         : ['ml','L'],
+  'Guli/Tablets' : ['Qty'],
+};
+function unitsFor(cat){ return CAT_UNITS[cat] || ['g','Kg']; }
+
+// Parse an existing free-text qty string like "250g","1Kg","500ml","2L","750 Qty" into {num, unit}
+function parseQtyString(qtyStr, cat){
+  const units = unitsFor(cat);
+  const s = String(qtyStr||'').trim();
+  // Try "Qty" pattern first (e.g. "750 Qty" or "750Qty")
+  let m = s.match(/^([\d.]+)\s*Qty$/i);
+  if(m && units.includes('Qty')) return { num:m[1], unit:'Qty' };
+  // Try unit suffix pattern, longest unit first so "Kg" isn't swallowed by "g" check etc.
+  const sorted = [...units].sort((a,b)=>b.length-a.length);
+  for(const u of sorted){
+    const re = new RegExp(`^([\\d.]+)\\s*${u}$`, 'i');
+    const mm = s.match(re);
+    if(mm) return { num:mm[1], unit:u };
+  }
+  // Fallback: pull out leading number, default to first valid unit
+  const numMatch = s.match(/^([\d.]+)/);
+  return { num: numMatch ? numMatch[1] : '', unit: units[0] };
+}
+
+function buildQtyString(num, unit){
+  if(unit==='Qty') return `${num} Qty`;
+  return `${num}${unit}`;
+}
+
+function selMedCat(el, cat){
+  medCat = cat;
+  document.querySelectorAll('#medCatTabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  // Re-render existing rows so unit choices match the new category, preserving numbers where possible
+  const existing = getPriceRows();
+  document.getElementById('priceRows').innerHTML='';
+  if(existing.length){
+    existing.forEach(p=>{
+      const parsed = parseQtyString(p.qty, medCat);
+      addPriceRow(parsed.num, p.price, parsed.unit);
+    });
+  } else {
+    addPriceRow();
+  }
+}
+
+function addPriceRow(num='', price='', unit=''){
+  const units = unitsFor(medCat);
+  if(!unit || !units.includes(unit)) unit = units[0];
+  const row = document.createElement('div');
+  row.className = 'price-row';
+  row.dataset.unit = unit;
+
+  const unitButtonsHtml = units.length>1
+    ? units.map(u=>`<button type="button" class="unit-btn${u===unit?' active':''}" onclick="selRowUnit(this,'${u}')">${u}</button>`).join('')
+    : `<span class="unit-fixed">${units[0]}</span>`;
+
+  row.innerHTML = `
+    <input class="inp qty-num" type="number" placeholder="Amount" value="${num}" min="0" step="any" style="flex:1">
+    <div class="unit-toggle">${unitButtonsHtml}</div>
+    <input class="inp price-amt" type="number" placeholder="Price (Rs.)" value="${price}" min="0" style="flex:1">
+    <button class="price-row-del" onclick="this.parentElement.remove()" title="Remove">×</button>`;
+  document.getElementById('priceRows').appendChild(row);
+}
+
+function selRowUnit(el, unit){
+  const row = el.closest('.price-row');
+  row.dataset.unit = unit;
+  row.querySelectorAll('.unit-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function getPriceRows(){
+  const rows = document.querySelectorAll('#priceRows .price-row');
+  const pairs = [];
+  rows.forEach(r=>{
+    const num   = r.querySelector('.qty-num').value.trim();
+    const price = Number(r.querySelector('.price-amt').value||0);
+    const unit  = r.dataset.unit || unitsFor(medCat)[0];
+    if(num) pairs.push({ qty: buildQtyString(num, unit), price });
+  });
+  return pairs;
+}
+
+function setPriceRows(pairs){
+  document.getElementById('priceRows').innerHTML='';
+  pairs.forEach(p=>{
+    const parsed = parseQtyString(p.qty, medCat);
+    addPriceRow(parsed.num, p.price, parsed.unit);
+  });
+}
+
+function saveMed(){
+  const name = document.getElementById('medName').value.trim();
+  if(!name) return toast('⚠️ Medicine name required');
+  const prices = getPriceRows();
+  if(!prices.length) return toast('⚠️ Add at least one quantity/price pair');
+  const m = { name, category: medCat, prices };
+  const idx = parseInt(document.getElementById('editMedIdx').value);
+  if(idx>=0){ medicines[idx]=m; toast('✅ Medicine updated'); }
+  else { medicines.push(m); toast('✅ Medicine saved'); }
+  save('medicines',medicines);
+  renderMeds();
+  clearMedForm();
+}
+
+function clearMedForm(){
+  document.getElementById('medName').value='';
+  document.getElementById('priceRows').innerHTML='';
+  document.getElementById('editMedIdx').value='-1';
+  document.getElementById('cancelMedBtn').style.display='none';
+  document.getElementById('medFormTitle').textContent='Add Medicine';
+  // Reset to first tab
+  medCat='Kashaya';
+  document.querySelectorAll('#medCatTabs .tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  // Seed one empty row
+  addPriceRow();
+}
+
+function cancelMedEdit(){ clearMedForm(); }
+
+function editMed(i){
+  const m = medicines[i];
+  medCat = m.category;
+  document.querySelectorAll('#medCatTabs .tab').forEach(t=>t.classList.toggle('active', t.textContent===m.category));
+  document.getElementById('medName').value = m.name;
+  setPriceRows(m.prices);
+  document.getElementById('editMedIdx').value = i;
+  document.getElementById('cancelMedBtn').style.display='block';
+  document.getElementById('medFormTitle').textContent='Edit Medicine';
+  document.getElementById('medName').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function delMed(i){
+  if(!confirm(`Delete "${medicines[i].name}"?`)) return;
+  medicines.splice(i,1); save('medicines',medicines); renderMeds(); toast('🗑️ Medicine deleted');
+}
+
+function renderMeds(){
+  const q   = (document.getElementById('medLibSearch').value||'').trim().toLowerCase();
+  const tokens = q.split(/\s+/).filter(Boolean);
+  const list = tokens.length ? medicines.filter(m=>{
+    const nameLC = m.name.toLowerCase();
+    return tokens.every(t=>nameLC.includes(t));
+  }) : medicines;
+  document.getElementById('medCount').textContent = `${list.length} medicine${list.length!==1?'s':''}`;
+  const el  = document.getElementById('medList');
+  if(!list.length){ el.innerHTML=emptyState('No medicines found'); return; }
+  el.innerHTML = list.map((m,i)=>{
+    const realIdx = medicines.indexOf(m);
+    const pairsHtml = m.prices.map(p=>`<span style="margin-right:8px">${p.qty}: <b>Rs.${Number(p.price).toLocaleString()}</b></span>`).join('');
+    return `<div class="list-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div class="list-card-name">${m.name}</div>
+        <span class="badge badge-blue" style="flex-shrink:0">${m.category}</span>
+      </div>
+      <div class="list-card-meta" style="margin-top:6px">${pairsHtml}</div>
+      <div class="btn-row"><button class="btn btn-warning btn-sm" onclick="editMed(${realIdx})">Edit</button><button class="btn btn-danger btn-sm" onclick="delMed(${realIdx})">Delete</button></div>
+    </div>`;
+  }).join('');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CREATE ORDER – DYNAMIC QTY BUTTONS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function switchCat(el, cat){
+  currentCat = cat;
+  document.querySelectorAll('#catTabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  // Reset medicine
+  selMed = null; selQty = null;
+  document.getElementById('medSearch').value='';
+  setRes('medRes', false);
+  setSelBox('selMedBox', null);
+  renderQtyButtons(null);
+}
+
+function searchSup(){
+  const q = document.getElementById('supSearch').value.toLowerCase();
+  const res = document.getElementById('supRes');
+  if(!q){ setRes('supRes',false); return; }
+  const hits = suppliers.filter(s=>s.name.toLowerCase().includes(q)||( s.rep&&s.rep.toLowerCase().includes(q)));
+  res.innerHTML = hits.map(s=>`<div class="res-item" onclick="pickSup(${JSON.stringify(s.name).replace(/</g,'&lt;')})">${s.name}${s.rep?' <span style="color:#94a3b8;font-size:12px">· '+s.rep+'</span>':''}</div>`).join('');
+  setRes('supRes', hits.length>0);
+}
+
+function pickSup(name){
+  selSup = suppliers.find(s=>s.name===name);
+  setSelBox('selSupBox', selSup ? `<div class="sn">${selSup.name}</div><div class="sm">${selSup.rep||''} ${selSup.phone?'· '+selSup.phone:''} · Discount ${selSup.discount}%</div>` : null);
+  document.getElementById('supSearch').value='';
+  setRes('supRes',false);
+  document.getElementById('cartSupLbl').textContent = selSup ? `For: ${selSup.name}` : '';
+}
+
+// Multi-language search: searches across all tokens in the name
+function searchMed(){
+  const q = document.getElementById('medSearch').value.trim().toLowerCase();
+  if(!q){ setRes('medRes',false); return; }
+  // tokenise query — match if any word in the medicine name contains any query token
+  const tokens = q.split(/\s+/).filter(Boolean);
+  const hits = medicines.filter(m=>{
+    if(m.category !== currentCat) return false;
+    const nameLC = m.name.toLowerCase();
+    return tokens.every(t=>nameLC.includes(t));
+  });
+  const res = document.getElementById('medRes');
+  res.innerHTML = hits.map(m=>`<div class="res-item" onclick="pickMed(${JSON.stringify(m.name).replace(/</g,'&lt;')})">${m.name}</div>`).join('');
+  setRes('medRes', hits.length>0);
+  if(!hits.length) res.innerHTML=`<div style="padding:10px 14px;font-size:12.5px;color:#94a3b8">No medicines found in ${currentCat}</div>`, setRes('medRes',true);
+}
+
+function pickMed(name){
+  selMed = medicines.find(m=>m.name===name && m.category===currentCat);
+  if(!selMed) selMed = medicines.find(m=>m.name===name);
+  setSelBox('selMedBox', selMed ? `<div class="sn">${selMed.name}</div><div class="sm">${selMed.category}</div>` : null);
+  document.getElementById('medSearch').value='';
+  setRes('medRes',false);
+  renderQtyButtons(selMed);
+}
+
+function renderQtyButtons(med){
+  const wrap = document.getElementById('qtyButtons');
+  if(!med||!med.prices||!med.prices.length){ wrap.innerHTML='<span style="font-size:12px;color:#94a3b8">Select a medicine to see quantities</span>'; selQty=null; return; }
+  selQty = med.prices[0].qty;
+  wrap.innerHTML = med.prices.map((p,i)=>`<button class="qty-btn${i===0?' active':''}" onclick="setQty(this,'${p.qty.replace(/'/g,"\\'")}')">
+    <div style="font-weight:600">${p.qty}</div>
+    <div style="font-size:11px;color:inherit;opacity:.75">Rs.${Number(p.price).toLocaleString()}</div>
+  </button>`).join('');
+}
+
+function setQty(el, q){
+  selQty = q;
+  document.querySelectorAll('#qtyButtons .qty-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function addToOrder(){
+  if(!selSup)  return toast('⚠️ Select a supplier first');
+  if(!selMed)  return toast('⚠️ Select a medicine first');
+  if(!selQty)  return toast('⚠️ Select a quantity');
+  if(cart.find(c=>c.medicine===selMed.name&&c.quantity===selQty)) return toast('ℹ️ Already in order');
+  cart.push({ medicine:selMed.name, category:selMed.category, quantity:selQty });
+  renderCart();
+  toast('✅ Added to order');
+}
+
+function removeFromCart(i){ cart.splice(i,1); renderCart(); }
+
+function renderCart(){
+  const tbody = document.getElementById('cartBody');
+  const empty = document.getElementById('cartEmpty');
+  if(!cart.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = cart.map((c,i)=>`<tr>
+    <td style="color:#94a3b8">${i+1}</td>
+    <td>${c.medicine}</td>
+    <td><span class="badge badge-blue">${c.quantity}</span></td>
+    <td><button class="del-cell" onclick="removeFromCart(${i})">×</button></td>
+  </tr>`).join('');
+}
+
+function saveOrder(){
+  if(!selSup)     return toast('⚠️ Select a supplier first');
+  if(!cart.length) return toast('⚠️ Add at least one medicine');
+  const today = new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  const newOrder = { id:Date.now(), date:today, supplier:selSup, items:[...cart], paymentType:'Credit', paymentStatus:'Pending' };
+  orders = load('orders');
+  orders.push(newOrder);
+  save('orders',orders);
+  // Reset
+  cart=[]; selSup=null; selMed=null; selQty=null;
+  renderCart();
+  setSelBox('selSupBox',null); setSelBox('selMedBox',null);
+  document.getElementById('cartSupLbl').textContent='';
+  renderQtyButtons(null);
+  toast('✅ Order saved!', 3000);
+  setTimeout(()=>go('orders',document.querySelectorAll('.nav-item')[2]),700);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ORDERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function calcTotal(order){
+  let sub=0;
+  order.items.forEach(item=>{
+    const med = medicines.find(m=>m.name===item.medicine);
+    if(med){
+      const pair = med.prices.find(p=>p.qty===item.quantity);
+      if(pair) sub+=Number(pair.price);
+    }
+  });
+  return Math.round(sub - sub*(order.supplier.discount||0)/100);
+}
+
+function filterOrders(f,el){
+  orderFilter=f;
+  document.querySelectorAll('#orders .tgl').forEach(b=>b.className='tgl');
+  el.classList.add('pd');
+  renderOrders();
+}
+
+function renderOrders(){
+  let lo = load('orders').slice().reverse();
+  if(orderFilter!=='all') lo=lo.filter(o=>o.paymentStatus===orderFilter);
+  const el = document.getElementById('ordersList');
+  if(!lo.length){ el.innerHTML=emptyState('No orders found'); return; }
+  el.innerHTML = lo.map(o=>{
+    const tot=calcTotal(o);
+    return `<div class="order-card">
+      <div class="order-hdr">
+        <div><div class="order-sup">${o.supplier.name}</div><div class="order-dt">${o.date||''} · ${o.items.length} item${o.items.length!==1?'s':''}</div></div>
+        <span class="badge ${o.paymentStatus==='Paid'?'badge-green':'badge-amber'}">${o.paymentStatus}</span>
+      </div>
+      <div class="tbl-wrap"><table style="margin-top:10px">
+        <thead><tr><th>#</th><th>Medicine</th><th>Qty</th><th>Price</th></tr></thead>
+        <tbody>${o.items.map((item,n)=>{
+          const med=medicines.find(m=>m.name===item.medicine);
+          const pair=med?med.prices.find(p=>p.qty===item.quantity):null;
+          return `<tr><td style="color:#94a3b8">${n+1}</td><td>${item.medicine}</td><td><span class="badge badge-blue">${item.quantity}</span></td><td style="color:#059669;font-weight:600">${pair?'Rs.'+Number(pair.price).toLocaleString():'—'}</td></tr>`;
+        }).join('')}</tbody>
+      </table></div>
+      <div class="total-box">
+        <div><div class="total-lbl">Total after ${o.supplier.discount}% discount</div><div class="total-amt">Rs. ${tot.toLocaleString()}</div></div>
+        <div style="font-size:12px;color:#475569">${o.paymentType}</div>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div><div style="font-size:11.5px;font-weight:600;color:#64748b;margin-bottom:5px">Payment Type</div>
+          <div class="tgl-grp">
+            <button class="tgl ${o.paymentType==='Cash'?'ac':''}" onclick="setPayment(${o.id},'Cash')">Cash</button>
+            <button class="tgl ${o.paymentType==='Credit'?'cr':''}" onclick="setPayment(${o.id},'Credit')">Credit</button>
+          </div>
+        </div>
+        <div><div style="font-size:11.5px;font-weight:600;color:#64748b;margin-bottom:5px">Payment Status</div>
+          <div class="tgl-grp">
+            <button class="tgl ${o.paymentStatus==='Paid'?'pd':''}" onclick="setStatus(${o.id},'Paid')">Paid</button>
+            <button class="tgl ${o.paymentStatus==='Pending'?'pn':''}" onclick="setStatus(${o.id},'Pending')">Pending</button>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:13px">
+        <button class="btn btn-primary btn-sm" onclick="shareWA(${o.id})">WhatsApp</button>
+        <button class="btn btn-success btn-sm" onclick="genPDF(${o.id})">PDF</button>
+        <button class="btn btn-warning btn-sm" onclick="editOrder(${o.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="delOrder(${o.id})">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setPayment(id,val){ updateOrder(id,o=>o.paymentType=val); }
+function setStatus(id,val){  updateOrder(id,o=>o.paymentStatus=val); }
+function updateOrder(id,fn){ const lo=load('orders'); const o=lo.find(x=>x.id===id); if(o){fn(o);save('orders',lo);renderOrders();} }
+
+function editOrder(id){
+  const lo=load('orders'); const idx=lo.findIndex(x=>x.id===id); if(idx<0)return;
+  const o=lo[idx];
+  selSup=o.supplier;
+  setSelBox('selSupBox',`<div class="sn">${selSup.name}</div><div class="sm">Discount ${selSup.discount}%</div>`);
+  document.getElementById('cartSupLbl').textContent=`For: ${selSup.name}`;
+  cart=[...o.items]; renderCart();
+  lo.splice(idx,1); save('orders',lo);
+  go('create',document.querySelectorAll('.nav-item')[1]);
+}
+
+function delOrder(id){
+  if(!confirm('Delete this order?'))return;
+  save('orders',load('orders').filter(x=>x.id!==id));
+  renderOrders(); toast('🗑️ Order deleted');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// WHATSAPP / PDF
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function shareWA(id){
+  const o=load('orders').find(x=>x.id===id); if(!o)return;
+  let txt=`*Darshana Ayurveda Order*\n📅 ${o.date||''}\n🏪 ${o.supplier.name}\n\n`;
+  o.items.forEach((item,n)=>{
+    const med=medicines.find(m=>m.name===item.medicine);
+    const pair=med?med.prices.find(p=>p.qty===item.quantity):null;
+    txt+=`${n+1}. ${item.medicine} – ${item.quantity}${pair?' (Rs.'+Number(pair.price).toLocaleString()+')':''}\n`;
+  });
+  txt+=`\n💰 Total: Rs.${calcTotal(o).toLocaleString()}\n💳 ${o.paymentType} | ${o.paymentStatus}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`);
+}
+
+function genPDF(id){
+  const {jsPDF}=window.jspdf;
+  const o=load('orders').find(x=>x.id===id); if(!o)return;
+  const doc=new jsPDF(); const tot=calcTotal(o);
+  // Header band
+  doc.setFillColor(26,86,219); doc.rect(0,0,210,40,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(20); doc.setFont(undefined,'bold');
+  doc.text('Darshana Ayurveda',15,18);
+  doc.setFontSize(9); doc.setFont(undefined,'normal');
+  doc.text('077-8817015  |  No.95/4A/3, Kalapaluwawa Road, Thalangama North',15,27);
+  doc.text(`Date: ${o.date||new Date().toLocaleDateString()}`,15,35);
+  // Supplier
+  doc.setTextColor(30,41,59); doc.setFontSize(12); doc.setFont(undefined,'bold');
+  doc.text(`Order for: ${o.supplier.name}`,15,54);
+  doc.setFont(undefined,'normal'); doc.setFontSize(10);
+  let sy=62;
+  if(o.supplier.rep)  { doc.text(`Rep: ${o.supplier.rep}`,15,sy); sy+=8; }
+  if(o.supplier.phone){ doc.text(`Phone: ${o.supplier.phone}`,15,sy); sy+=8; }
+  // Table
+  let y=sy+8;
+  doc.setFillColor(241,245,249); doc.rect(15,y-7,180,10,'F');
+  doc.setFont(undefined,'bold'); doc.setFontSize(10); doc.setTextColor(100,116,139);
+  doc.text('#',17,y); doc.text('Medicine',30,y); doc.text('Qty',135,y); doc.text('Price (Rs.)',168,y);
+  y+=8; doc.setDrawColor(226,232,240); doc.line(15,y,195,y); y+=7;
+  doc.setFont(undefined,'normal'); doc.setTextColor(30,41,59);
+  o.items.forEach((item,n)=>{
+    const med=medicines.find(m=>m.name===item.medicine);
+    const pair=med?med.prices.find(p=>p.qty===item.quantity):null;
+    const priceStr=pair?Number(pair.price).toLocaleString():'—';
+    const nameLines=doc.splitTextToSize(item.medicine,100);
+    doc.text(String(n+1),17,y);
+    doc.text(nameLines,30,y);
+    doc.text(item.quantity,135,y);
+    doc.text(priceStr,168,y);
+    y+=nameLines.length>1?nameLines.length*7:10;
+    if(y>270){doc.addPage();y=20;}
+  });
+  // Total
+  y+=5; doc.setDrawColor(26,86,219); doc.line(15,y,195,y); y+=10;
+  doc.setFillColor(236,252,243); doc.rect(105,y-7,85,24,'F');
+  doc.setFont(undefined,'bold'); doc.setFontSize(10); doc.setTextColor(6,95,70);
+  doc.text(`Discount: ${o.supplier.discount}%`,109,y);
+  doc.setFontSize(13); doc.text(`Total: Rs.${tot.toLocaleString()}`,109,y+12);
+  doc.setFont(undefined,'normal'); doc.setFontSize(9); doc.setTextColor(148,163,184);
+  doc.text('Thank you for your business!',15,y+25);
+  doc.text(`Payment: ${o.paymentType}  |  Status: ${o.paymentStatus}`,15,y+32);
+  doc.save(`Order-${o.supplier.name.replace(/\s+/g,'-')}-${o.date||'order'}.pdf`);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SETTINGS – IMPORT / EXPORT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ---------- Export ----------
+function exportCSV(){
+  if(!medicines.length){ toast('⚠️ No medicines to export'); return; }
+  // Find max price pair count
+  let maxPairs = 0;
+  medicines.forEach(m=>{ if(m.prices.length>maxPairs) maxPairs=m.prices.length; });
+  // Header
+  let hdr = ['name','category'];
+  for(let i=1;i<=maxPairs;i++) hdr.push(`qty_${i}`,`price_${i}`);
+  const rows = [hdr.join(',')];
+  medicines.forEach(m=>{
+    const row=[csvEsc(m.name), csvEsc(m.category)];
+    m.prices.forEach(p=>{ row.push(csvEsc(p.qty), p.price); });
+    rows.push(row.join(','));
+  });
+  const blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  dlBlob(blob,`darshana-medicines-${today()}.csv`);
+  toast(`✅ Exported ${medicines.length} medicines`);
+}
+
+function downloadTemplate(){
+  const csv=`name,category,qty_1,price_1,qty_2,price_2,qty_3,price_3,qty_4,price_4,qty_5,price_5
+Dhanwantaram,Kashaya,250g,1670,500g,3120,1Kg,5790
+Triphala Churna,Churna,250g,320,500g,590,1Kg,1100
+Brahmi Guli,Guli/Tablets,60 Qty,440,250 Qty,1670,1000 Qty,5790
+Karpasasthyadi Thailaya,Oils,100ml,580,200ml,990,500ml,2450,1L,4230,2L,8050`;
+  dlBlob(new Blob([csv],{type:'text/csv'}),`darshana-template.csv`);
+  toast('✅ Template downloaded');
+}
+
+// ---------- Import ----------
+function handleDrop(e){
+  e.preventDefault(); document.getElementById('fileDrop').classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.name.endsWith('.csv')) handleFile(f);
+  else toast('⚠️ Please drop a .csv file');
+}
+
+function handleFile(file){
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>parseAndPreviewCSV(e.target.result, file.name);
+  reader.readAsText(file,'UTF-8');
+}
+
+function parseCSV(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2) return {error:'CSV has no data rows'};
+  const headers=parseCSVRow(lines[0]).map(h=>h.trim().toLowerCase());
+  if(!headers.includes('name')||!headers.includes('category')) return {error:'CSV must have "name" and "category" columns'};
+  const niName=headers.indexOf('name'), niCat=headers.indexOf('category');
+  const parsed=[];
+  const errors=[];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim()) continue;
+    const cols=parseCSVRow(lines[i]);
+    const name=(cols[niName]||'').trim();
+    const cat =(cols[niCat]||'').trim();
+    if(!name){ errors.push(`Row ${i+1}: missing name`); continue; }
+    // Collect qty/price pairs from remaining columns (positional pairs after fixed cols)
+    // Support two patterns:
+    // A) columns named qty_1,price_1,qty_2,price_2 …
+    // B) remaining positional pairs after name,category
+    const prices=[];
+    if(headers.some(h=>h.startsWith('qty_'))){
+      // pattern A
+      let pairIdx=1;
+      while(true){
+        const qi=headers.indexOf(`qty_${pairIdx}`);
+        const pi=headers.indexOf(`price_${pairIdx}`);
+        if(qi<0||pi<0) break;
+        const qty=(cols[qi]||'').trim();
+        const price=parseFloat(cols[pi]||0)||0;
+        if(qty) prices.push({qty,price});
+        pairIdx++;
+      }
+    } else {
+      // pattern B: every column after name+category treated as qty,price pairs
+      const fixedCols=new Set([niName,niCat]);
+      const extra=cols.filter((_,idx)=>!fixedCols.has(idx));
+      for(let j=0;j<extra.length-1;j+=2){
+        const qty=(extra[j]||'').trim();
+        const price=parseFloat(extra[j+1]||0)||0;
+        if(qty) prices.push({qty,price});
+      }
+    }
+    if(!prices.length){ errors.push(`Row ${i+1} (${name}): no qty/price pairs found`); continue; }
+    parsed.push({name,category:cat,prices});
+  }
+  return {parsed,errors};
+}
+
+// Proper CSV row parser (handles quoted fields)
+function parseCSVRow(line){
+  const cols=[]; let cur='', inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){ if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ; }
+    else if(c===','&&!inQ){ cols.push(cur); cur=''; }
+    else cur+=c;
+  }
+  cols.push(cur); return cols;
+}
+
+function parseAndPreviewCSV(text, filename){
+  const result=parseCSV(text);
+  if(result.error){ showImportResult('err',`❌ ${result.error}`); return; }
+  const {parsed,errors}=result;
+  if(!parsed.length){ showImportResult('err','❌ No valid medicines found in CSV'); return; }
+  const mode = document.querySelector('input[name="importMode"]:checked').value;
+  // Build preview
+  let previewHtml=`<p style="font-size:13px;margin-bottom:10px"><b>${parsed.length}</b> medicines ready to import · Mode: <b>${mode}</b></p>`;
+  if(errors.length) previewHtml+=`<div style="background:#fef3c7;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;margin-bottom:10px">⚠️ ${errors.length} row(s) skipped:<br>${errors.join('<br>')}</div>`;
+  previewHtml+=`<div style="max-height:280px;overflow-y:auto"><table class="preview-table">
+    <thead><tr><th>#</th><th>Name</th><th>Category</th><th>Quantities</th></tr></thead>
+    <tbody>${parsed.map((m,i)=>`<tr>
+      <td style="color:#94a3b8">${i+1}</td>
+      <td>${m.name}</td>
+      <td><span class="badge badge-blue">${m.category}</span></td>
+      <td style="font-size:11.5px">${m.prices.map(p=>`${p.qty}=Rs.${p.price}`).join(', ')}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>
+  <div class="btn-row" style="margin-top:16px;justify-content:flex-end">
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="commitImport(${JSON.stringify(JSON.stringify(parsed)).slice(1,-1)}, '${mode}')">Import ${parsed.length} Medicines</button>
+  </div>`;
+  openModal(`Preview: ${filename}`, previewHtml);
+}
+
+function commitImport(parsedJSON, mode){
+  let parsed;
+  try{ parsed=JSON.parse(parsedJSON); }catch(e){ toast('❌ Parse error'); return; }
+  closeModal();
+  if(mode==='replace'){
+    medicines=parsed;
+  } else if(mode==='merge'){
+    parsed.forEach(imp=>{
+      const idx=medicines.findIndex(m=>m.name.toLowerCase()===imp.name.toLowerCase());
+      if(idx>=0) medicines[idx]=imp;
+      else medicines.push(imp);
+    });
+  } else { // skip
+    parsed.forEach(imp=>{
+      if(!medicines.find(m=>m.name.toLowerCase()===imp.name.toLowerCase())) medicines.push(imp);
+    });
+  }
+  save('medicines',medicines);
+  renderMeds();
+  toast(`✅ Imported ${parsed.length} medicines (${mode} mode)`);
+  showImportResult('ok',`✅ Successfully imported ${parsed.length} medicines`);
+  document.getElementById('csvFile').value='';
+}
+
+function showImportResult(type,msg){
+  const el=document.getElementById('importResult');
+  el.textContent=msg; el.className=`import-result ${type}`; el.style.display='block';
+}
+
+// ---------- Danger zone ----------
+function clearAllMeds(){
+  if(!confirm('Delete ALL medicines? This cannot be undone.')) return;
+  medicines=[]; save('medicines',medicines); renderMeds(); toast('🗑️ All medicines deleted');
+}
+function clearAllData(){
+  if(!confirm('Reset the ENTIRE app? All orders, suppliers and medicines will be deleted. This cannot be undone.')) return;
+  localStorage.clear(); location.reload();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// UI UTILITIES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function setRes(id, open){
+  const el=document.getElementById(id);
+  el.classList.toggle('open', open);
+  if(!open) el.innerHTML='';
+}
+
+function setSelBox(id, html){
+  const el=document.getElementById(id);
+  if(html){ el.className='sel-box'; el.innerHTML=html; }
+  else { el.className='sel-box empty'; el.textContent=id==='selSupBox'?'No supplier selected':'No medicine selected'; }
+}
+
+function emptyState(msg){
+  return `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;margin:0 auto 10px;display:block;opacity:.3"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><p>${msg}</p></div>`;
+}
+
+function csvEsc(v){ v=String(v); return (v.includes(',')||v.includes('"')||v.includes('\n'))?`"${v.replace(/"/g,'""')}"`:v; }
+function today(){ return new Date().toISOString().slice(0,10); }
+function dlBlob(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// COMMIT IMPORT HELPER (safe JSON pass-through via data attribute)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Override commitImport to use a safer data store instead of inline JSON
+let _pendingImport = null;
+function parseAndPreviewCSV2(text, filename){} // placeholder, real one above
+// Patch: store parsed data in memory instead of inline JSON in onclick
+const _orig_parseAndPreviewCSV = parseAndPreviewCSV;
+window.parseAndPreviewCSV = function(text, filename){
+  const result=parseCSV(text);
+  if(result.error){ showImportResult('err',`❌ ${result.error}`); return; }
+  const {parsed,errors}=result;
+  if(!parsed.length){ showImportResult('err','❌ No valid medicines found in CSV'); return; }
+  _pendingImport = parsed;
+  const mode=document.querySelector('input[name="importMode"]:checked').value;
+  let previewHtml=`<p style="font-size:13px;margin-bottom:10px"><b>${parsed.length}</b> medicines ready to import · Mode: <b>${mode}</b></p>`;
+  if(errors.length) previewHtml+=`<div style="background:#fef3c7;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;margin-bottom:10px">⚠️ ${errors.length} row(s) skipped:<br>${errors.join('<br>')}</div>`;
+  previewHtml+=`<div style="max-height:280px;overflow-y:auto"><table class="preview-table">
+    <thead><tr><th>#</th><th>Name</th><th>Category</th><th>Quantities</th></tr></thead>
+    <tbody>${parsed.map((m,i)=>`<tr>
+      <td style="color:#94a3b8">${i+1}</td><td>${m.name}</td>
+      <td><span class="badge badge-blue">${m.category}</span></td>
+      <td style="font-size:11.5px">${m.prices.map(p=>`${p.qty}=Rs.${p.price}`).join(', ')}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>
+  <div class="btn-row" style="margin-top:16px;justify-content:flex-end">
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="commitImportPending('${mode}')">✅ Import ${parsed.length} Medicines</button>
+  </div>`;
+  openModal(`Preview — ${filename}`, previewHtml);
+};
+
+window.commitImportPending = function(mode){
+  if(!_pendingImport){ toast('❌ No import data'); closeModal(); return; }
+  const parsed=_pendingImport; _pendingImport=null; closeModal();
+  if(mode==='replace'){
+    medicines=parsed;
+  } else if(mode==='merge'){
+    parsed.forEach(imp=>{
+      const idx=medicines.findIndex(m=>m.name.toLowerCase()===imp.name.toLowerCase());
+      if(idx>=0) medicines[idx]=imp; else medicines.push(imp);
+    });
+  } else {
+    parsed.forEach(imp=>{ if(!medicines.find(m=>m.name.toLowerCase()===imp.name.toLowerCase())) medicines.push(imp); });
+  }
+  save('medicines',medicines);
+  renderMeds();
+  toast(`✅ Imported ${parsed.length} medicines (${mode})`);
+  showImportResult('ok',`✅ Successfully imported ${parsed.length} medicines`);
+  document.getElementById('csvFile').value='';
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INIT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+renderSups();
+renderMeds();
+renderDashboard();
+addPriceRow(); // seed one empty price row in the medicine form
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PWA: SERVICE WORKER REGISTRATION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{ /* offline support unavailable, app still works online */ });
+  });
+}
+</script>
+</body>
+</html>
